@@ -1,38 +1,41 @@
 
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, Suspense } from "react";
+import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import "./globals.css";
 
+const FoodScene3D = dynamic(
+  () => import("./components/FoodScene3D"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="scene-loading">
+        Preparing the dining experience...
+      </div>
+    ),
+  }
+);
+
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
   const experienceRef = useRef<HTMLElement>(null);
-  const plateRef = useRef<HTMLDivElement>(null);
-  const ingredientsRef = useRef<HTMLDivElement>(null);
-  const steamRef = useRef<HTMLDivElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
 
+  // Shared scroll progress for the 3D food scene.
+  const progressRef = useRef(0);
+
   useLayoutEffect(() => {
     const experience = experienceRef.current;
-    const plate = plateRef.current;
-    const ingredients = ingredientsRef.current;
-    const steam = steamRef.current;
     const intro = introRef.current;
     const story = storyRef.current;
 
-    if (
-      !experience ||
-      !plate ||
-      !ingredients ||
-      !steam ||
-      !intro ||
-      !story
-    ) {
+    if (!experience || !intro || !story) {
       return;
     }
 
@@ -44,62 +47,13 @@ export default function Home() {
           end: "+=1800",
           scrub: true,
           pin: true,
+          onUpdate: (self) => {
+            progressRef.current = self.progress;
+          },
         },
       });
 
-      // Scene 1: The real food photograph moves and rotates.
-      timeline.to(
-        plate,
-        {
-          rotation: -12,
-          scale: 1.12,
-          x: -65,
-          duration: 1,
-          ease: "none",
-        },
-        0
-      );
-
-      // Scene 2: Ingredient accents rise over the photograph.
-      timeline.to(
-        ingredients,
-        {
-          y: -75,
-          rotation: 8,
-          scale: 1.08,
-          duration: 0.8,
-          ease: "none",
-        },
-        0.8
-      );
-
-      // Scene 3: Steam becomes visible.
-      timeline.to(
-        steam,
-        {
-          opacity: 1,
-          y: -55,
-          scale: 1.2,
-          duration: 1,
-          ease: "none",
-        },
-        1.3
-      );
-
-      // Scene 4: The photograph returns to its final position.
-      timeline.to(
-        plate,
-        {
-          rotation: 0,
-          scale: 1,
-          x: 0,
-          duration: 0.8,
-          ease: "none",
-        },
-        2.3
-      );
-
-      // The introductory heading fades away.
+      // Scene 1: The introductory heading fades away.
       timeline.to(
         intro,
         {
@@ -111,7 +65,7 @@ export default function Home() {
         0.5
       );
 
-      // The restaurant story appears.
+      // Scene 2: The restaurant story appears.
       timeline.fromTo(
         story,
         {
@@ -179,37 +133,25 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Real food photograph */}
-        <div className="food-scene">
-          <div ref={plateRef} className="food-photo">
-            <img
-              src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85"
-              alt="Freshly prepared pasta served in a restaurant"
-              className="food-image"
-            />
-
-            <div className="food-image-overlay" />
-
-            <div
-              ref={ingredientsRef}
-              className="ingredient-overlay"
-            >
-              <span className="ingredient-dot ingredient-dot-one" />
-              <span className="ingredient-dot ingredient-dot-two" />
-              <span className="ingredient-dot ingredient-dot-three" />
-            </div>
-          </div>
-
-          {/* Decorative steam */}
-          <div ref={steamRef} className="steam">
-            <span />
-            <span />
-            <span />
-          </div>
+        {/* Interactive 3D food scene */}
+        <div className="food-scene food-scene-3d">
+          <Suspense
+            fallback={
+              <div className="scene-loading">
+                Preparing the dining experience...
+              </div>
+            }
+          >
+            <FoodScene3D progress={progressRef} />
+          </Suspense>
         </div>
 
         {/* Restaurant story revealed by scrolling */}
-        <div ref={storyRef} id="story" className="story">
+        <div
+          ref={storyRef}
+          id="story"
+          className="story"
+        >
           <span className="eyebrow">
             THE SAVORA EXPERIENCE
           </span>
@@ -231,6 +173,7 @@ export default function Home() {
           </a>
         </div>
 
+        {/* Scroll indicator */}
         <div className="scroll-indicator">
           <span>SCROLL TO EXPERIENCE</span>
           <div className="scroll-line" />
