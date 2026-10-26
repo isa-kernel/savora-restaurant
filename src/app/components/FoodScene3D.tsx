@@ -1,224 +1,224 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { ContactShadows, Environment, Float } from "@react-three/drei";
+import { ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
 
 type FoodScene3DProps = {
   progress: React.RefObject<number>;
 };
 
+type PlateAndFoodProps = {
+  progress: React.RefObject<number>;
+  reducedMotion: boolean;
+};
+
 function PlateAndFood({
   progress,
-}: FoodScene3DProps) {
+  reducedMotion,
+}: PlateAndFoodProps) {
   const plateRef = useRef<THREE.Group>(null);
   const foodRef = useRef<THREE.Group>(null);
   const steamRef = useRef<THREE.Group>(null);
 
-  const pastaCurves = useMemo(() => {
-    return [
-      new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-0.8, 0.2, 0.1),
-        new THREE.Vector3(-0.45, 0.25, 0.35),
-        new THREE.Vector3(0.0, 0.3, 0.15),
-        new THREE.Vector3(0.45, 0.25, -0.15),
-        new THREE.Vector3(0.75, 0.2, 0.1),
-      ]),
-      new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-0.6, 0.35, -0.2),
-        new THREE.Vector3(-0.25, 0.4, -0.5),
-        new THREE.Vector3(0.15, 0.35, -0.3),
-        new THREE.Vector3(0.45, 0.3, 0.1),
-      ]),
-      new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-0.4, 0.4, 0.5),
-        new THREE.Vector3(-0.1, 0.45, 0.65),
-        new THREE.Vector3(0.3, 0.4, 0.45),
-        new THREE.Vector3(0.55, 0.35, 0.2),
-      ]),
-    ];
-  }, []);
+  const pastaCurves = [
+    new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.65, 0.24, -0.15),
+      new THREE.Vector3(-0.35, 0.38, 0.1),
+      new THREE.Vector3(0.05, 0.28, 0.25),
+      new THREE.Vector3(0.4, 0.4, 0.05),
+      new THREE.Vector3(0.55, 0.25, -0.25),
+    ]),
+    new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.45, 0.3, 0.3),
+      new THREE.Vector3(-0.15, 0.42, 0.0),
+      new THREE.Vector3(0.2, 0.28, -0.2),
+      new THREE.Vector3(0.45, 0.36, 0.2),
+    ]),
+    new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.2, 0.32, -0.35),
+      new THREE.Vector3(0.0, 0.42, -0.05),
+      new THREE.Vector3(-0.25, 0.3, 0.2),
+      new THREE.Vector3(0.15, 0.38, 0.35),
+    ]),
+  ];
 
   useFrame((state) => {
-    const p = THREE.MathUtils.clamp(
-      progress.current,
+    const plate = plateRef.current;
+    const food = foodRef.current;
+    const steam = steamRef.current;
+
+    if (!plate || !food || !steam) return;
+
+    const rawProgress = progress.current ?? 0;
+    const p = THREE.MathUtils.clamp(rawProgress, 0, 1);
+
+    if (reducedMotion) {
+      plate.rotation.set(0, 0, 0);
+      plate.position.set(0, 0, 0);
+      plate.scale.setScalar(1);
+
+      food.position.set(0, 0.15, 0);
+      food.rotation.set(0, 0, 0);
+
+      steam.visible = false;
+      return;
+    }
+
+    const movement = Math.sin(p * Math.PI);
+
+    plate.rotation.z = THREE.MathUtils.lerp(
       0,
-      1
+      -0.22,
+      movement
     );
 
-    if (plateRef.current) {
-      // Rotate and move the actual 3D plate.
-      plateRef.current.rotation.z = THREE.MathUtils.lerp(
-        0,
-        -0.35,
-        Math.sin(p * Math.PI)
-      );
+    plate.rotation.y = p * 0.55;
+    plate.position.x = -0.55 * movement;
 
-      plateRef.current.rotation.y = THREE.MathUtils.lerp(
-        0,
-        0.65,
-        p
-      );
+    const scale = 1 + 0.1 * movement;
+    plate.scale.setScalar(scale);
 
-      plateRef.current.position.x =
-        -0.7 * Math.sin(p * Math.PI);
+    food.position.y = 0.15 + movement * 0.65;
+    food.rotation.y = p * Math.PI * 0.65;
 
-      plateRef.current.scale.setScalar(
-        1 + 0.12 * Math.sin(p * Math.PI)
-      );
-    }
+    steam.visible = p > 0.35 && p < 0.95;
 
-    if (foodRef.current) {
-      // Ingredients lift away from the plate,
-      // then return as the scroll progresses.
-      const lift = Math.sin(p * Math.PI);
+    if (steam.visible) {
+      steam.position.y =
+        0.1 + Math.sin(state.clock.elapsedTime * 2) * 0.025;
 
-      foodRef.current.position.y = 0.15 + lift * 0.85;
-      foodRef.current.rotation.y = p * Math.PI * 0.7;
-    }
-
-    if (steamRef.current) {
-      // Steam becomes visible as the dish is revealed.
-      steamRef.current.visible = p > 0.35 && p < 0.95;
-
-      steamRef.current.position.y =
-        0.75 + Math.sin(state.clock.elapsedTime * 1.5) * 0.06;
-
-      steamRef.current.rotation.y =
-        Math.sin(state.clock.elapsedTime * 0.7) * 0.15;
-
-      steamRef.current.scale.setScalar(
-        0.8 + Math.sin(state.clock.elapsedTime * 2) * 0.05
-      );
+      steam.rotation.y =
+        Math.sin(state.clock.elapsedTime) * 0.08;
     }
   });
 
   return (
     <>
-      {/* The plate */}
       <group ref={plateRef}>
-        {/* Main ceramic body */}
-        <mesh receiveShadow position={[0, 0, 0]}>
-          <cylinderGeometry args={[2.05, 1.9, 0.18, 96]} />
-
+        {/* Plate */}
+        <mesh
+          position={[0, 0, 0]}
+          receiveShadow
+        >
+          <cylinderGeometry args={[1.65, 1.55, 0.13, 96]} />
           <meshStandardMaterial
-            color="#e9ded0"
-            roughness={0.24}
-            metalness={0.05}
+            color="#f1e9d8"
+            roughness={0.23}
+            metalness={0.03}
           />
         </mesh>
 
-        {/* Raised rim */}
+        {/* Plate rim */}
         <mesh
           rotation={[Math.PI / 2, 0, 0]}
-          position={[0, 0.12, 0]}
+          position={[0, 0.07, 0]}
         >
-          <torusGeometry args={[1.75, 0.065, 16, 100]} />
-
+          <torusGeometry args={[1.48, 0.035, 12, 96]} />
           <meshStandardMaterial
-            color="#c4a77e"
-            metalness={0.45}
+            color="#c5a56a"
+            metalness={0.55}
             roughness={0.3}
           />
         </mesh>
 
-        {/* Food arrangement */}
+        {/* Food */}
         <group ref={foodRef} position={[0, 0.15, 0]}>
-          {/* Pasta */}
           {pastaCurves.map((curve, index) => (
             <mesh
               key={index}
               castShadow
-              receiveShadow
-              position={[0, 0.2, 0]}
+              geometry={
+                new THREE.TubeGeometry(curve, 64, 0.055, 10, false)
+              }
             >
-              <tubeGeometry args={[curve, 48, 0.075, 10, false]} />
-
               <meshStandardMaterial
-                color={index === 1 ? "#d99a45" : "#f2c36e"}
-                roughness={0.32}
+                color={index === 1 ? "#e9b64e" : "#f3d17c"}
+                roughness={0.4}
               />
             </mesh>
           ))}
 
-          {/* Cherry tomatoes */}
-          <mesh
-            castShadow
-            position={[-0.65, 0.28, 0.3]}
-          >
-            <sphereGeometry args={[0.23, 32, 32]} />
-
-            <meshStandardMaterial
-              color="#c92727"
-              roughness={0.24}
-            />
-          </mesh>
-
-          <mesh
-            castShadow
-            position={[0.65, 0.25, -0.25]}
-          >
-            <sphereGeometry args={[0.19, 32, 32]} />
-
-            <meshStandardMaterial
-              color="#e13c2e"
-              roughness={0.25}
-            />
-          </mesh>
+          {/* Tomato pieces */}
+          {[
+            [-0.55, 0.28, 0.15],
+            [0.42, 0.3, -0.12],
+            [0.05, 0.34, 0.38],
+            [-0.15, 0.3, -0.4],
+          ].map((position, index) => (
+            <mesh
+              key={`tomato - ${index} `}
+              position={position as [number, number, number]}
+              castShadow
+            >
+              <sphereGeometry args={[0.13, 20, 20]} />
+              <meshStandardMaterial
+                color="#c8442e"
+                roughness={0.35}
+              />
+            </mesh>
+          ))}
 
           {/* Basil leaves */}
-          <mesh
-            castShadow
-            position={[-0.2, 0.38, 0.55]}
-            rotation={[0.4, 0.2, -0.5]}
-            scale={[0.25, 0.07, 0.45]}
-          >
-            <sphereGeometry args={[1, 32, 24]} />
-
-            <meshStandardMaterial
-              color="#477b37"
-              roughness={0.55}
-            />
-          </mesh>
-
-          <mesh
-            castShadow
-            position={[0.4, 0.35, 0.45]}
-            rotation={[0.2, -0.5, 0.8]}
-            scale={[0.22, 0.06, 0.38]}
-          >
-            <sphereGeometry args={[1, 32, 24]} />
-
-            <meshStandardMaterial
-              color="#679347"
-              roughness={0.55}
-            />
-          </mesh>
+          {[
+            [-0.3, 0.4, -0.15],
+            [0.25, 0.4, 0.12],
+            [0.1, 0.42, -0.25],
+          ].map((position, index) => (
+            <mesh
+              key={`basil - ${index} `}
+              position={position as [number, number, number]}
+              rotation={[
+                0.3 + index * 0.2,
+                index * 0.8,
+                0.4 + index * 0.2,
+              ]}
+              castShadow
+            >
+              <sphereGeometry args={[0.18, 16, 12]} />
+              <meshStandardMaterial
+                color="#387447"
+                roughness={0.65}
+              />
+            </mesh>
+          ))}
         </group>
       </group>
 
-      {/* Stylized steam ribbons */}
-      <group ref={steamRef} position={[0, 0.75, 0]}>
+      {/* Steam */}
+      <group ref={steamRef} visible={false}>
         {[0, 1, 2].map((index) => {
-          const points = Array.from({ length: 18 }, (_, i) => {
-            const t = i / 17;
-
-            return new THREE.Vector3(
-              Math.sin(t * 5 + index * 1.5) * 0.12,
-              t * 1.4,
-              Math.cos(t * 4 + index) * 0.08
-            );
-          });
-
-          const curve = new THREE.CatmullRomCurve3(points);
+          const curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(
+              -0.2 + index * 0.2,
+              0.3,
+              0
+            ),
+            new THREE.Vector3(
+              -0.15 + index * 0.2,
+              0.55,
+              0
+            ),
+            new THREE.Vector3(
+              -0.25 + index * 0.2,
+              0.8,
+              0
+            ),
+            new THREE.Vector3(
+              -0.1 + index * 0.2,
+              1.05,
+              0
+            ),
+          ]);
 
           return (
-            <mesh key={index} position={[(index - 1) * 0.2, 0, 0]}>
-              <tubeGeometry args={[curve, 32, 0.018, 8, false]} />
-
+            <mesh key={`steam - ${index} `}>
+              <tubeGeometry
+                args={[curve, 24, 0.018, 8, false]}
+              />
               <meshBasicMaterial
-                color="#f3d7b5"
+                color="#fff5df"
                 transparent
                 opacity={0.55}
               />
@@ -233,49 +233,74 @@ function PlateAndFood({
 export default function FoodScene3D({
   progress,
 }: FoodScene3DProps) {
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+    const mobileQuery = window.matchMedia(
+      "(max-width: 600px)"
+    );
+
+    const updateMotion = () => {
+      setReducedMotion(motionQuery.matches);
+    };
+
+    const updateMobile = () => {
+      setIsMobile(mobileQuery.matches);
+    };
+
+    updateMotion();
+    updateMobile();
+
+    motionQuery.addEventListener("change", updateMotion);
+    mobileQuery.addEventListener("change", updateMobile);
+
+    return () => {
+      motionQuery.removeEventListener("change", updateMotion);
+      mobileQuery.removeEventListener("change", updateMobile);
+    };
+  }, []);
+
   return (
     <Canvas
-      dpr={[1, 1.5]}
-      camera={{
-        position: [0, 4.5, 7],
-        fov: 38,
-      }}
-      shadows
+      camera={{ position: [0, 4.5, 7], fov: 38 }}
+      dpr={isMobile ? 1 : [1, 1.5]}
       gl={{
-        antialias: true,
+        antialias: !isMobile,
         alpha: true,
-      }}
-      style={{
-        width: "100%",
-        height: "100%",
+        powerPreference: "low-power",
       }}
     >
-      <ambientLight intensity={1.1} />
+      <ambientLight intensity={1.5} />
 
       <directionalLight
         position={[4, 7, 5]}
-        intensity={3}
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        intensity={2.5}
       />
 
       <pointLight
-        position={[-4, 2, -2]}
-        intensity={25}
-        color="#e99b57"
+        position={[-4, 3, -3]}
+        intensity={1.2}
+        color="#d8a75a"
       />
 
       <Environment preset="studio" />
 
-      <PlateAndFood progress={progress} />
+      <PlateAndFood
+        progress={progress}
+        reducedMotion={reducedMotion}
+      />
 
       <ContactShadows
-        position={[0, -0.3, 0]}
-        opacity={0.4}
-        scale={7}
-        blur={2}
-        far={4}
+        position={[0, -0.12, 0]}
+        opacity={0.35}
+        scale={5}
+        blur={2.5}
+        far={2}
       />
     </Canvas>
   );

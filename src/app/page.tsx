@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useLayoutEffect, useRef, Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -20,221 +19,422 @@ const FoodScene3D = dynamic(
   }
 );
 
-gsap.registerPlugin(ScrollTrigger);
-
 export default function Home() {
-  const experienceRef = useRef<HTMLElement>(null);
-  const introRef = useRef<HTMLDivElement>(null);
-  const storyRef = useRef<HTMLDivElement>(null);
-
-  // Shared scroll progress for the 3D food scene.
   const progressRef = useRef(0);
+  const heroRef = useRef<HTMLElement>(null);
+  const storyRef = useRef<HTMLElement>(null);
 
-  useLayoutEffect(() => {
-    const experience = experienceRef.current;
-    const intro = introRef.current;
-    const story = storyRef.current;
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
 
-    if (!experience || !intro || !story) {
-      return;
-    }
+    const media = gsap.matchMedia();
 
-    const context = gsap.context(() => {
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: experience,
-          start: "top top",
-          end: "+=1800",
-          scrub: true,
-          pin: true,
-          onUpdate: (self) => {
-            progressRef.current = self.progress;
+    media.add(
+      {
+        reduceMotion: "(prefers-reduced-motion: reduce)",
+        desktop: "(min-width: 901px)",
+        mobile: "(max-width: 900px)",
+      },
+      (context) => {
+        const conditions = context.conditions as {
+          reduceMotion: boolean;
+          desktop: boolean;
+          mobile: boolean;
+        };
+
+        const reduceMotion = conditions.reduceMotion;
+
+        if (reduceMotion) {
+          progressRef.current = 0;
+
+          gsap.set(
+            [
+              ".hero-copy",
+              ".hero-eyebrow",
+              ".hero-description",
+              ".hero-actions",
+              ".story-content",
+              ".menu-card",
+            ],
+            {
+              clearProps: "all",
+              autoAlpha: 1,
+              y: 0,
+            }
+          );
+
+          return;
+        }
+
+        const hero = heroRef.current;
+        const story = storyRef.current;
+
+        if (!hero || !story) return;
+
+        gsap.set(
+          [
+            ".hero-eyebrow",
+            ".hero-copy",
+            ".hero-description",
+            ".hero-actions",
+          ],
+          {
+            autoAlpha: 0,
+            y: 24,
+          }
+        );
+
+        const intro = gsap.timeline({
+          defaults: {
+            ease: "power3.out",
           },
-        },
-      });
+        });
 
-      // Scene 1: The introductory heading fades away.
-      timeline.to(
-        intro,
-        {
-          opacity: 0,
-          y: -45,
-          duration: 0.6,
-          ease: "none",
-        },
-        0.5
-      );
+        intro
+          .to(".hero-eyebrow", {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.7,
+          })
+          .to(
+            ".hero-copy",
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 1,
+            },
+            "-=0.4"
+          )
+          .to(
+            ".hero-description",
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.7,
+            },
+            "-=0.5"
+          )
+          .to(
+            ".hero-actions",
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.7,
+            },
+            "-=0.4"
+          );
 
-      // Scene 2: The restaurant story appears.
-      timeline.fromTo(
-        story,
-        {
-          opacity: 0,
-          x: 45,
-        },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.8,
-          ease: "none",
-        },
-        2
-      );
-    }, experience);
+        const scrollAnimation = gsap.timeline({
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "+=1500",
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              progressRef.current = self.progress;
+            },
+          },
+        });
+
+        scrollAnimation
+          .to(
+            ".hero-copy",
+            {
+              x: conditions.desktop ? -100 : -30,
+              y: -35,
+              autoAlpha: 0,
+              duration: 0.3,
+            },
+            0
+          )
+          .to(
+            ".hero-description",
+            {
+              y: -25,
+              autoAlpha: 0,
+              duration: 0.2,
+            },
+            0
+          )
+          .to(
+            ".hero-actions",
+            {
+              y: -20,
+              autoAlpha: 0,
+              duration: 0.2,
+            },
+            0
+          )
+          .to(
+            ".hero-eyebrow",
+            {
+              y: -20,
+              autoAlpha: 0,
+              duration: 0.2,
+            },
+            0
+          );
+
+        gsap.fromTo(
+          ".story-content",
+          {
+            y: 60,
+            autoAlpha: 0,
+          },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: story,
+              start: "top 70%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+
+        gsap.fromTo(
+          ".menu-card",
+          {
+            y: 35,
+            autoAlpha: 0,
+          },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.7,
+            stagger: 0.15,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".menu-section",
+              start: "top 75%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+
+        return () => {
+          progressRef.current = 0;
+        };
+      }
+    );
 
     return () => {
-      context.revert();
+      media.revert();
     };
   }, []);
 
   return (
-    <main className="restaurant">
-      {/* Navigation */}
-      <header className="navigation">
-        <a href="#home" className="logo">
+    <main>
+      <header className="site-header">
+        <a href="#" className="brand" aria-label="Savora home">
           SAVORA<span>.</span>
         </a>
 
-        <nav>
-          <a href="#home">HOME</a>
-          <a href="#story">OUR STORY</a>
-          <a href="#menu">MENU</a>
+        <nav className="desktop-nav" aria-label="Main navigation">
+          <a href="#story">Our Story</a>
+          <a href="#menu">Menu</a>
+          <a href="#reservation">Reservations</a>
         </nav>
 
-        <a href="#reservation" className="nav-button">
-          RESERVE A TABLE ↗
+        <a className="header-cta" href="#reservation">
+          Book a Table <span>↗</span>
         </a>
       </header>
 
-      {/* Scroll-controlled experience */}
       <section
-        ref={experienceRef}
-        id="home"
-        className="experience"
+        ref={heroRef}
+        className="hero-section"
+        aria-labelledby="hero-title"
       >
-        <div className="ambient-light" />
+        <div className="hero-background-glow" />
 
-        {/* Introductory text */}
-        <div ref={introRef} className="intro">
-          <span className="eyebrow">
-            A NEW EXPRESSION OF FINE DINING
-          </span>
+        <div className="hero-content">
+          <p className="hero-eyebrow">
+            <span className="eyebrow-line" />
+            A MODERN ITALIAN DINING EXPERIENCE
+          </p>
 
-          <h1>
-            Food that
+          <h1 id="hero-title" className="hero-copy">
+            Taste the art
             <br />
-            <em>moves you.</em>
+            of <em>living well.</em>
           </h1>
 
-          <p>
-            Extraordinary ingredients.
-            <br />
-            Unforgettable experiences.
+          <p className="hero-description">
+            Thoughtfully sourced ingredients. Honest cooking.
+            Unforgettable moments around the table.
           </p>
+
+          <div className="hero-actions">
+            <a href="#menu" className="button button-primary">
+              Explore the Menu <span>↗</span>
+            </a>
+
+            <a href="#story" className="text-link">
+              Discover Savora <span>↓</span>
+            </a>
+          </div>
+        </div>
+        <div className="food-photo">
+          <img
+            src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1400&q=90"
+            alt="Freshly prepared pasta with herbs"
+          />
+
+          <div className="food-photo-overlay" />
         </div>
 
-        {/* Interactive 3D food scene */}
-        <div className="food-scene food-scene-3d">
-          <Suspense
-            fallback={
-              <div className="scene-loading">
-                Preparing the dining experience...
-              </div>
-            }
-          >
-            <FoodScene3D progress={progressRef} />
-          </Suspense>
-        </div>
-
-        {/* Restaurant story revealed by scrolling */}
-        <div
-          ref={storyRef}
-          id="story"
-          className="story"
-        >
-          <span className="eyebrow">
-            THE SAVORA EXPERIENCE
+        <div className="hero-bottom">
+          <span>FRESH INGREDIENTS. TIMELESS FLAVOUR.</span>
+          <span className="scroll-indicator">
+            SCROLL TO EXPERIENCE <span>↓</span>
           </span>
+        </div>
+      </section>
+
+      <section
+        ref={storyRef}
+        id="story"
+        className="story-section"
+      >
+        <div className="story-content">
+          <p className="section-eyebrow">THE SAVORA PHILOSOPHY</p>
 
           <h2>
-            Crafted with
+            Simple ingredients.
             <br />
-            <em>intention.</em>
+            <em>Extraordinary moments.</em>
           </h2>
 
-          <p>
-            Every ingredient has a purpose.
-            Every plate tells a story.
-            Every visit becomes a memory.
+          <p className="story-description">
+            We believe great food begins long before it reaches
+            your plate. It starts with seasonal ingredients,
+            thoughtful preparation, and the joy of bringing
+            people together.
           </p>
 
-          <a href="#menu" className="story-button">
-            DISCOVER OUR MENU ↗
+          <a href="#menu" className="text-link">
+            Discover our approach <span>↗</span>
           </a>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="scroll-indicator">
-          <span>SCROLL TO EXPERIENCE</span>
-          <div className="scroll-line" />
-        </div>
-
-        <div className="scene-number">
-          01 <span>/</span> 04
+        <div className="story-side">
+          <span className="story-number">01</span>
+          <div className="story-divider" />
+          <p>
+            MADE WITH CARE
+            <br />
+            SERVED WITH PURPOSE
+          </p>
         </div>
       </section>
 
-      {/* Menu section */}
       <section id="menu" className="menu-section">
-        <span className="eyebrow">FROM OUR KITCHEN</span>
+        <div className="section-heading">
+          <div>
+            <p className="section-eyebrow">FROM OUR KITCHEN</p>
+            <h2>
+              A taste of <em>Savora.</em>
+            </h2>
+          </div>
+
+          <p className="menu-intro">
+            Crafted with seasonal ingredients and a little
+            imagination.
+          </p>
+        </div>
+
+        <div className="menu-grid">
+          <article className="menu-card">
+            <div className="menu-card-visual pasta-visual">
+              <span>01</span>
+              <div className="menu-plate">
+                <div className="menu-pasta">〰</div>
+              </div>
+            </div>
+
+            <div className="menu-card-details">
+              <div>
+                <h3>Golden Tagliatelle</h3>
+                <p>Fresh pasta · Parmesan · Garden herbs</p>
+              </div>
+              <span className="menu-price">KES 1,450</span>
+            </div>
+          </article>
+
+          <article className="menu-card">
+            <div className="menu-card-visual tomato-visual">
+              <span>02</span>
+              <div className="tomato-art">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+
+            <div className="menu-card-details">
+              <div>
+                <h3>Garden Pomodoro</h3>
+                <p>Slow-roasted tomatoes · Basil · Olive oil</p>
+              </div>
+              <span className="menu-price">KES 1,200</span>
+            </div>
+          </article>
+
+          <article className="menu-card">
+            <div className="menu-card-visual basil-visual">
+              <span>03</span>
+              <div className="basil-art">
+                <span>✳</span>
+              </div>
+            </div>
+
+            <div className="menu-card-details">
+              <div>
+                <h3>Herb Garden Bowl</h3>
+                <p>Seasonal greens · Herbs · Citrus dressing</p>
+              </div>
+              <span className="menu-price">KES 980</span>
+            </div>
+          </article>
+        </div>
+
+        <p className="menu-disclaimer">
+          Demonstration menu and prices for the SAVORA prototype.
+        </p>
+      </section>
+
+      <section id="reservation" className="reservation-section">
+        <p className="section-eyebrow">YOUR TABLE IS WAITING</p>
 
         <h2>
-          An experience beyond
+          Make room for
           <br />
-          the ordinary.
+          <em>something memorable.</em>
         </h2>
 
         <p>
-          Thoughtfully prepared dishes, carefully selected
-          ingredients, and an atmosphere designed for you.
+          Good food. Good company. A moment worth slowing down for.
         </p>
 
-        <a href="#reservation" className="menu-button">
-          EXPLORE THE MENU ↗
+        <a href="mailto:hello@savora.example" className="button button-primary">
+          Request a Reservation <span>↗</span>
         </a>
       </section>
 
-      {/* Reservation section */}
-      <section id="reservation" className="reservation">
-        <span className="eyebrow">YOUR TABLE AWAITS</span>
-
-        <h2>
-          Make tonight
-          <br />
-          <em>memorable.</em>
-        </h2>
-
-        <a
-          href="mailto:reservations@example.com"
-          className="reservation-button"
-        >
-          REQUEST A RESERVATION ↗
-        </a>
-
-        <p>
-          SAVORA — AN EXPRESSION OF FINE DINING
-        </p>
-      </section>
-
-      {/* Footer */}
-      <footer className="footer">
-        <a href="#home" className="logo">
+      <footer className="site-footer">
+        <a href="#" className="brand">
           SAVORA<span>.</span>
         </a>
 
-        <span>MADE FOR THE MOMENT.</span>
+        <p>Good food brings us together.</p>
 
-        <a href="#home">BACK TO TOP ↑</a>
+        <span>© 2026 SAVORA. ALL RIGHTS RESERVED.</span>
       </footer>
     </main>
   );
