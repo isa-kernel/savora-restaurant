@@ -33,6 +33,8 @@ a {
   overflow: clip;
 }
 
+/* Navigation */
+
 .navigation {
   height: 78px;
   padding: 0 7%;
@@ -78,6 +80,8 @@ a {
   white-space: nowrap;
 }
 
+/* Main scroll experience */
+
 .experience {
   height: calc(100vh - 78px);
   min-height: 650px;
@@ -88,7 +92,10 @@ a {
     radial-gradient(ellipse at 73% 55%,
       #5b2c1c38,
       transparent 42%),
-    linear-gradient(110deg, #100c0b, #1b100c 70%, #0c0908);
+    linear-gradient(110deg,
+      #100c0b,
+      #1b100c 70%,
+      #0c0908);
 }
 
 .ambient-light {
@@ -102,6 +109,8 @@ a {
   filter: blur(100px);
   border-radius: 50%;
 }
+
+/* Introductory text */
 
 .intro {
   position: absolute;
@@ -146,6 +155,8 @@ a {
   line-height: 1.9;
 }
 
+/* Food scene */
+
 .food-scene {
   position: absolute;
   top: 50%;
@@ -155,187 +166,80 @@ a {
   transform: translateY(-42%);
 }
 
-.plate {
+/* Real food photograph */
+
+.food-photo {
   position: absolute;
   top: 50px;
   left: 25px;
   width: 370px;
   height: 370px;
-  border-radius: 50%;
-  transform-origin: center center;
-  will-change: transform;
-  background: linear-gradient(135deg,
-      #c9bcb0,
-      #f4e7d6 28%,
-      #9e8a79 48%,
-      #f4e5d1 75%,
-      #a79585);
-  padding: 12px;
-  box-shadow:
-    0 25px 65px #0009,
-    inset 0 0 12px #fff9;
-}
-
-.plate-rim {
-  width: 100%;
-  height: 100%;
-  border: 2px solid #d2c0ae;
-  border-radius: 50%;
-  padding: 25px;
-  background: linear-gradient(145deg,
-      #e8dacc,
-      #b8a797 50%,
-      #f6e9d9);
-  box-shadow: inset 0 0 15px #65504344;
-}
-
-.plate-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   border-radius: 50%;
-  background:
-    radial-gradient(ellipse at 40% 35%,
-      #f1dfc9,
-      #c8b5a1 80%);
-  box-shadow: inset 0 0 20px #4a261c44;
-}
+  border: 8px solid #e7d7c4;
 
-.sauce {
-  position: absolute;
-  width: 190px;
-  height: 115px;
-  border-radius: 50%;
-  background: #812f1e;
-  filter: blur(1px);
-  opacity: 0.85;
-}
+  box-shadow:
+    0 25px 65px #0009,
+    0 0 35px #d5a66c20;
 
-.sauce-one {
-  top: 65px;
-  left: 30px;
-  transform: rotate(-35deg);
-}
-
-.sauce-two {
-  bottom: 45px;
-  right: 5px;
-  transform: rotate(35deg) scale(0.8);
-  background: #a34c25;
-}
-
-.ingredients {
-  position: absolute;
-  inset: 0;
+  transform-origin: center center;
   will-change: transform;
 }
 
-.pasta {
+.food-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.food-image-overlay {
   position: absolute;
-  width: 52px;
-  height: 100px;
-  border-radius: 50%;
-  border: 11px solid #e7a54c;
-  border-left-color: #f7ca76;
-  border-right-color: #c97b2d;
-  box-shadow: 2px 3px 5px #4b231b55;
-  background: transparent;
-}
+  inset: 0;
+  pointer-events: none;
 
-.pasta-one {
-  left: 64px;
-  top: 75px;
-  transform: rotate(35deg);
-}
-
-.pasta-two {
-  left: 115px;
-  top: 55px;
-  transform: rotate(-25deg);
-}
-
-.pasta-three {
-  left: 145px;
-  top: 105px;
-  transform: rotate(45deg);
-}
-
-.pasta-four {
-  left: 55px;
-  top: 140px;
-  transform: rotate(-55deg);
-}
-
-.tomato {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 25%,
-      #f47753,
-      #c72d20 60%,
-      #7e2117);
-  box-shadow: inset -5px -5px 8px #63150f77;
-}
-
-.tomato-one {
-  top: 70px;
-  left: 155px;
-}
-
-.tomato-two {
-  top: 145px;
-  left: 105px;
-  transform: scale(0.8);
-}
-
-.leaf {
-  position: absolute;
-  width: 32px;
-  height: 48px;
-  border-radius: 100% 0 100% 0;
   background: linear-gradient(135deg,
-      #91a85b,
-      #38502a);
-  box-shadow: 2px 3px 5px #17240e66;
+      #f7d8a020,
+      transparent 45%,
+      #14080635);
 }
 
-.leaf-one {
-  top: 60px;
-  left: 115px;
-  transform: rotate(25deg);
-}
-
-.leaf-two {
-  top: 130px;
-  left: 170px;
-  transform: rotate(75deg);
-}
-
-.leaf-three {
-  top: 175px;
-  left: 60px;
-  transform: rotate(-35deg);
-}
-
-.herb {
+.ingredient-overlay {
   position: absolute;
-  width: 13px;
-  height: 13px;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.ingredient-dot {
+  position: absolute;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #61773a;
+
+  background: radial-gradient(circle at 30% 30%,
+      #e7c77f,
+      #92733d);
+
+  box-shadow: 0 4px 12px #0005;
 }
 
-.herb-one {
-  left: 130px;
-  top: 125px;
+.ingredient-dot-one {
+  top: 25%;
+  left: 65%;
 }
 
-.herb-two {
-  left: 190px;
-  top: 80px;
+.ingredient-dot-two {
+  top: 60%;
+  left: 25%;
 }
+
+.ingredient-dot-three {
+  top: 72%;
+  left: 70%;
+}
+
+/* Decorative steam */
 
 .steam {
   position: absolute;
@@ -375,6 +279,8 @@ a {
   transform: rotate(25deg);
 }
 
+/* Restaurant story */
+
 .story {
   position: absolute;
   z-index: 5;
@@ -404,6 +310,8 @@ a {
   letter-spacing: 1px;
   margin-top: 15px;
 }
+
+/* Scroll indicators */
 
 .scroll-indicator {
   position: absolute;
@@ -441,6 +349,8 @@ a {
   margin: 0 6px;
 }
 
+/* Menu section */
+
 .menu-section,
 .reservation {
   text-align: center;
@@ -462,6 +372,8 @@ a {
   margin: 0 auto;
 }
 
+/* Reservation section */
+
 .reservation {
   background:
     radial-gradient(ellipse at center,
@@ -481,6 +393,8 @@ a {
   letter-spacing: 2px;
 }
 
+/* Footer */
+
 .footer {
   min-height: 90px;
   padding: 20px 7%;
@@ -497,6 +411,8 @@ a {
   letter-spacing: 1.5px;
   color: var(--muted);
 }
+
+/* Tablet layout */
 
 @media (max-width: 900px) {
   .navigation {
@@ -526,6 +442,8 @@ a {
     width: 230px;
   }
 }
+
+/* Mobile layout */
 
 @media (max-width: 600px) {
   .navigation {
@@ -615,6 +533,8 @@ a {
     display: none;
   }
 }
+
+/* Reduced motion preference */
 
 @media (prefers-reduced-motion: reduce) {
   .scroll-line {

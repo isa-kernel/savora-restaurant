@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
@@ -46,24 +47,24 @@ export default function Home() {
         },
       });
 
-      // Scene 1: The dish moves and rotates.
+      // Scene 1: The real food photograph moves and rotates.
       timeline.to(
         plate,
         {
-          rotation: 24,
-          scale: 1.15,
-          x: -100,
+          rotation: -12,
+          scale: 1.12,
+          x: -65,
           duration: 1,
           ease: "none",
         },
         0
       );
 
-      // Scene 2: Ingredients rise from the plate.
+      // Scene 2: Ingredient accents rise over the photograph.
       timeline.to(
         ingredients,
         {
-          y: -110,
+          y: -75,
           rotation: 8,
           scale: 1.08,
           duration: 0.8,
@@ -85,7 +86,7 @@ export default function Home() {
         1.3
       );
 
-      // Scene 4: The dish returns to its final position.
+      // Scene 4: The photograph returns to its final position.
       timeline.to(
         plate,
         {
@@ -110,7 +111,7 @@ export default function Home() {
         0.5
       );
 
-      // The restaurant's story appears.
+      // The restaurant story appears.
       timeline.fromTo(
         story,
         {
@@ -127,12 +128,13 @@ export default function Home() {
       );
     }, experience);
 
-    return () => context.revert();
+    return () => {
+      context.revert();
+    };
   }, []);
 
   return (
     <main className="restaurant">
-
       {/* Navigation */}
       <header className="navigation">
         <a href="#home" className="logo">
@@ -177,37 +179,24 @@ export default function Home() {
           </p>
         </div>
 
-        {/* The plate and its contents */}
+        {/* Real food photograph */}
         <div className="food-scene">
+          <div ref={plateRef} className="food-photo">
+            <img
+              src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85"
+              alt="Freshly prepared pasta served in a restaurant"
+              className="food-image"
+            />
 
-          <div ref={plateRef} className="plate">
-            <div className="plate-rim">
-              <div className="plate-inner">
+            <div className="food-image-overlay" />
 
-                <div className="sauce sauce-one" />
-                <div className="sauce sauce-two" />
-
-                <div
-                  ref={ingredientsRef}
-                  className="ingredients"
-                >
-                  <div className="pasta pasta-one" />
-                  <div className="pasta pasta-two" />
-                  <div className="pasta pasta-three" />
-                  <div className="pasta pasta-four" />
-
-                  <div className="tomato tomato-one" />
-                  <div className="tomato tomato-two" />
-
-                  <div className="leaf leaf-one" />
-                  <div className="leaf leaf-two" />
-                  <div className="leaf leaf-three" />
-
-                  <div className="herb herb-one" />
-                  <div className="herb herb-two" />
-                </div>
-
-              </div>
+            <div
+              ref={ingredientsRef}
+              className="ingredient-overlay"
+            >
+              <span className="ingredient-dot ingredient-dot-one" />
+              <span className="ingredient-dot ingredient-dot-two" />
+              <span className="ingredient-dot ingredient-dot-three" />
             </div>
           </div>
 
@@ -217,12 +206,13 @@ export default function Home() {
             <span />
             <span />
           </div>
-
         </div>
 
         {/* Restaurant story revealed by scrolling */}
         <div ref={storyRef} id="story" className="story">
-          <span className="eyebrow">THE SAVORA EXPERIENCE</span>
+          <span className="eyebrow">
+            THE SAVORA EXPERIENCE
+          </span>
 
           <h2>
             Crafted with
@@ -236,7 +226,7 @@ export default function Home() {
             Every visit becomes a memory.
           </p>
 
-          <a href="#reservation" className="story-button">
+          <a href="#menu" className="story-button">
             DISCOVER OUR MENU ↗
           </a>
         </div>
@@ -249,7 +239,6 @@ export default function Home() {
         <div className="scene-number">
           01 <span>/</span> 04
         </div>
-
       </section>
 
       {/* Menu section */}
@@ -294,6 +283,7 @@ export default function Home() {
         </p>
       </section>
 
+      {/* Footer */}
       <footer className="footer">
         <a href="#home" className="logo">
           SAVORA<span>.</span>
@@ -303,7 +293,6 @@ export default function Home() {
 
         <a href="#home">BACK TO TOP ↑</a>
       </footer>
-
     </main>
   );
 }
